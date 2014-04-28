@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
-  "name": "Chaordic Time Tracker for Asana",
+  "name": "Asana Extension for Chrome",
   "version": "0.9.1",
-  "description": "Pura gambiarra.",
+  "description": "Integrates Asana with your browsing experience.",
   "icons": {
     "128": "icon128.png"
   },

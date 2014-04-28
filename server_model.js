@@ -109,6 +109,63 @@ Asana.ServerModel = {
   },
 
   /**
+   * Requests the task details of a task
+   *
+   * Marcel
+   *     
+   */
+  task: function(task_id, callback) {
+    var self = this;
+    Asana.ApiBridge.request("GET", "/tasks/" + task_id, {},
+        function(response) {
+          self._makeCallback(response, callback);
+        });
+  },
+
+  /**
+   * Requests existing tags on a workspace
+   *
+   * Marcel
+   *     
+   */
+  allTags: function(wrkspc_id, callback) {
+    var self = this;
+    Asana.ApiBridge.request("GET", "/workspaces/" + wrkspc_id + "/tags", {},
+        function(response) {
+          self._makeCallback(response, callback);
+        });
+  },
+
+   /**
+   * Requests existing tags on a task
+   *
+   * Marcel
+   *     
+   */
+  tags: function(task_id, callback) {
+    var self = this;
+    //alert("teste");
+    Asana.ApiBridge.request("GET", "/tasks/" + task_id + "/tags", {},
+        function(response) {
+          self._makeCallback(response, callback);
+        });
+  },
+
+  /**
+   * Requests project details
+   *
+   * Marcel
+   *     
+   */
+  projects: function(prj_id, callback) {
+    var self = this;
+    Asana.ApiBridge.request("GET", "/projects/" + prj_id , {},
+        function(response) {
+          self._makeCallback(response, callback);
+        });
+  },
+
+  /**
    * Makes an Asana API request to add a task in the system.
    *
    * @param task {dict} Task fields.
@@ -120,6 +177,74 @@ Asana.ServerModel = {
         "POST",
         "/workspaces/" + workspace_id + "/tasks",
         task,
+        function(response) {
+          self._makeCallback(response, callback, errback);
+        });
+  },
+
+  /**
+   * Makes an Asana API request to add a tag in the system.
+   *
+   * Marcel
+   * 
+   */
+  createTag: function(wrkspc_id, tag_name, callback, errback) {
+    var self = this;
+    Asana.ApiBridge.request(
+        "POST",
+        "/workspaces/" + wrkspc_id + "/tags",
+        tag_name,
+        function(response) {
+          self._makeCallback(response, callback, errback);
+        });
+  },
+
+  /**
+   * Makes an Asana API request to add a story in the system.
+   *
+   * Marcel
+   * 
+   */
+  createStory: function(task_id, status, callback, errback) {
+    var self = this;
+    Asana.ApiBridge.request(
+        "POST",
+        "/tasks/" + task_id + "/stories",
+        status,
+        function(response) {
+          self._makeCallback(response, callback, errback);
+        });
+  },
+
+  /**
+   * Makes an Asana API request to add a tag in the task.
+   *
+   * Marcel
+   * 
+   */
+  addTaskTag: function(task_id, tag_id, callback, errback) {
+    var self = this;
+    Asana.ApiBridge.request(
+        "POST",
+        "/tasks/" + task_id + "/addTag",
+        tag_id,
+        function(response) {
+          self._makeCallback(response, callback, errback);
+        });
+  },
+
+  /**
+   * Makes an Asana API request to remove a tag in the task.
+   *
+   * Marcel
+   * 
+   */
+  removeTaskTag: function(task_id, tag_id, callback, errback) {
+    var self = this;
+    Asana.ApiBridge.request(
+        "POST",
+        "/tasks/" + task_id + "/removeTag",
+        tag_id,
         function(response) {
           self._makeCallback(response, callback, errback);
         });

@@ -13,51 +13,62 @@
 <body>
 
   <div id="banner">
-    Add to Asana
+    Chaordic Time Tracker
     <a id="close-banner" class="close-x"></a>
   </div>
 
   <div id="error" style="display:none">
     <span class="error-icon"></span>
-    Sorry, an error occurred. Please try again later.
+    Select an Asana task or die trying.
   </div>
 
   <div id="content">
     <div id="add_view" style="display:none">
       <table class="form">
         <tr>
-          <td class="field-name">Name:</td>
+          <td class="field-name">User:</td>
           <td class="field-value">
-            <input id="name"/>
+            <select id="assignee"><option>Loading...</option></select>
           </td>
         </tr>
-
+        <tr>
+          <td class="field-name">Task:</td>
+          <td class="field-value">
+            <textarea rows="4" cols="25" id="task"></textarea>
+          </td>
+        </tr>
+        <tr>
+          <td class="field-name">Tags:</td>
+          <td class="field-value">
+            <select id="tags"><option>Loading...</option></select>
+          </td>
+        </tr>
+        <!--
         <tr>
           <td class="field-name">Notes:</td>
           <td class="field-value">
             <textarea id="notes"></textarea>
           </td>
         </tr>
-
+        
         <tr>
           <td class="field-name">Workspace:</td>
           <td class="field-value">
             <select id="workspace"><option>Loading...</option></select>
           </td>
         </tr>
-
+        
+        -->
+        
         <tr>
-          <td class="field-name">Assignee:</td>
-          <td class="field-value">
-            <select id="assignee"><option>Loading...</option></select>
+          <td class="field-name">
           </td>
-        </tr>
-
-        <tr>
-          <td class="field-name"></td>
           <td class="field-value">
-            <div id="add_button" tabindex="0" class="button primary-button disabled">
-              <span class="button-text">Add to Asana</span>
+            <div id="start_button" tabindex="0" class="button primary-button disabled">
+              <span class="button-text">Start</span>
+            </div>
+            <div id="stop_button" tabindex="1" class="button primary-button disabled">
+              <span class="button-text">Stop</span>
             </div>
           </td>
         </tr>
@@ -70,8 +81,7 @@
     </div>
 
     <div id="login_view" style="display:none">
-      Please <a id="login_link" href="#">log into Asana</a> to start adding
-      tasks.
+      Please <a id="login_link" href="#">log into Asana</a> to start.
     </div>
 
   </div>

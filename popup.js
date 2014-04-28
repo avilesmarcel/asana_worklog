@@ -72,27 +72,97 @@ var showView = function(name) {
   });
 };
 
+var task_id = "";
+var proj_id = "";
+var wrkspace_id = "";
+var dotTag_id = 0 ;
+var wrkTag_id = 0 ;
+
 // Show the add UI
 var showAddUi = function(url, title, selected_text, options) {
   var self = this;
-  showView("add");
-  $("#notes").val(url + selected_text);
-  $("#name").val(title);
-  $("#name").focus();
-  $("#name").select();
-  Asana.ServerModel.me(function(user) {
-    // Just to cache result.
-    Asana.ServerModel.workspaces(function(workspaces) {
-      $("#workspace").html("");
-      workspaces.forEach(function(workspace) {
-        $("#workspace").append(
-            "<option value='" + workspace.id + "'>" + workspace.name + "</option>");
-      });
-      $("#workspace").val(options.default_workspace_id);
-      onWorkspaceChanged();
-      $("#workspace").change(onWorkspaceChanged);
+  var res = url.split("/");
+  if(url.indexOf("app.asana.com") !== -1){
+    proj_id = res[4];
+    task_id = res[5];
+    showView("add");
+    //$("#task").val(res[5]);
+    //$("#name").val(title);
+    //$("#name").focus();
+    //$("#name").select();
+
+    Asana.ServerModel.task(task_id, function(task) {
+      $("#task").val(task.name);
     });
-  });
+    
+    Asana.ServerModel.me(function(user) {
+      $("#assignee").html("");
+      $("#assignee").append(
+              "<option value='" + user.id + "'>" + user.name + "</option>");
+      $("#assignee").val(user.id);
+    });
+      
+    Asana.ServerModel.tags(task_id,
+      function(tags) {
+        setStartEnabled(true);
+        setStopEnabled(false);
+        $("#tags").html("");
+        tags.forEach(function(tag) {
+          $("#tags").append("<option value='" + tag.id + "'>" + tag.name + "</option>");
+          if (tag.name == "[working]") {
+            setStartEnabled(false);
+            setStopEnabled(true);
+            $("#tags").val(tag.id);  
+          }
+        });
+      }
+    );  
+
+/*
+    Asana.ServerModel.projects(proj_id, function(proj) {
+      wrkspace_id = proj.workspace.id;
+      Asana.ServerModel.allTags(wrkspace_id,function(tags) {
+        tags.forEach(function(tag){
+          if(tag.name == "."){
+            dotTag_id = tag.id;
+          }else if(tag.name == "[working]"){
+            wrkTag_id = tag.id;
+          }
+        });
+
+        if (true){
+          //cria tag
+          Asana.ServerModel.createTag(wrkspace_id,{name:"[working]"},
+            function(newTag){
+              dotTag_id = newTag.id;
+              alert(newTag.id);
+            },function(err){
+              alert("error");
+            }
+          );
+        }
+
+
+      });
+    });
+*/
+/*
+    Asana.ServerModel.me(function(user) {
+      Asana.ServerModel.workspaces(function(workspaces) {
+        $("#workspace").html("");
+        workspaces.forEach(function(workspace) {
+          $("#workspace").append(
+              "<option value='" + workspace.id + "'>" + workspace.name + "</option>");
+        });
+        $("#workspace").val(options.default_workspace_id);
+        onWorkspaceChanged();
+        $("#workspace").change(onWorkspaceChanged);
+      });
+    }); 
+*/
+  } else{
+    showError("Necessário selecionar uma task no asana!");
+  }
 };
 
 // Enable/disable the add button.
@@ -118,12 +188,106 @@ var setAddEnabled = function(enabled) {
   }
 };
 
+// Enable/disable the Start button.
+var setStartEnabled = function(enabled) {
+  var button = $("#start_button");
+  if (enabled) {
+    button.removeClass("disabled");
+    button.addClass("enabled");
+    button.click(function() {
+      manageTag("[start]");
+      //createStory("[start]");
+      return false;
+    });
+    button.keydown(function(e) {
+      if (e.keyCode === 13) {
+        manageTag("[start]");
+      }
+    });
+  } else {
+    button.removeClass("enabled");
+    button.addClass("disabled");
+    button.unbind('click');
+    button.unbind('keydown');
+  }
+};
+
+// Enable/disable the Hold button.
+var setHoldEnabled = function(enabled) {
+  var button = $("#hold_button");
+  if (enabled) {
+    button.removeClass("disabled");
+    button.addClass("enabled");
+    button.click(function() {
+      manageTag("[hold]");
+      return false;
+    });
+    button.keydown(function(e) {
+      if (e.keyCode === 13) {
+        manageTag("[hold]");
+      }
+    });
+  } else {
+    button.removeClass("enabled");
+    button.addClass("disabled");
+    button.unbind('click');
+    button.unbind('keydown');
+  }
+};
+
+// Enable/disable the Stop button.
+var setStopEnabled = function(enabled) {
+  var button = $("#stop_button");
+  if (enabled) {
+    button.removeClass("disabled");
+    button.addClass("enabled");
+    button.click(function() {
+      manageTag("[stop]");
+      return false;
+    });
+    button.keydown(function(e) {
+      if (e.keyCode === 13) {
+        manageTag("[stop]");
+      }
+    });
+  } else {
+    button.removeClass("enabled");
+    button.addClass("disabled");
+    button.unbind('click');
+    button.unbind('keydown');
+  }
+};
+
 // Set the add button as being "working", waiting for the Asana request
 // to complete.
 var setAddWorking = function(working) {
   setAddEnabled(!working);
   $("#add_button").find(".button-text").text(
       working ? "Adding..." : "Add to Asana");
+};
+
+// Set the start button as being "working", waiting for the Asana request
+// to complete.
+var setStartWorking = function(working) {
+  setStartEnabled(!working);
+  $("#start_button").find(".button-text").text(
+      working ? "Running..." : "Start");
+};
+
+// Set the hold button as being "working", waiting for the Asana request
+// to complete.
+var setHoldWorking = function(working) {
+  setHoldEnabled(!working);
+  $("#hold_button").find(".button-text").text(
+      working ? "Continue" : "Hold");
+};
+
+// Set the stop button as being "working", waiting for the Asana request
+// to complete.
+var setStopWorking = function(working) {
+  setStopEnabled(!working);
+  $("#stop_button").find(".button-text").text(
+      working ? "Stopping..." : "Stop");
 };
 
 // When the user changes the workspace, update the list of users.
@@ -155,6 +319,11 @@ var readWorkspaceId = function() {
   return $("#workspace").val();
 };
 
+var readTaskId = function() {
+  //return $("#task").val();
+  return task_id;
+};
+
 var createTask = function() {
   console.info("Creating task");
   hideError();
@@ -175,6 +344,190 @@ var createTask = function() {
         showError(response.errors[0].message);
       });
 };
+
+function startTimer () {
+    timer.start();
+    setTimeout(stopTimer,400);
+}
+
+function stopTimer () {
+    timer.stop;
+}
+
+
+
+var removeWorkingTag = function(callback, errback){
+  //alert("removeWorkingTag");
+  Asana.ServerModel.removeTaskTag(readTaskId(),{tag:11708685339766},callback, errback);
+}
+var addWorkingTag = function(callback, errback){
+  //alert("addWorkingTag");
+  Asana.ServerModel.addTaskTag(readTaskId(),{tag:11708685339766},callback, errback);
+}
+var removeDotTag = function(callback, errback){
+  Asana.ServerModel.removeTaskTag(readTaskId(),{tag:11721866157856},callback, errback);
+}
+var addDotTag = function(callback, errback){
+  Asana.ServerModel.addTaskTag(readTaskId(),{tag:11721866157856},callback, errback);
+}
+
+var removeStartTag = function(callback, errback){
+  //alert("removeStartTag");
+  Asana.ServerModel.removeTaskTag(readTaskId(),{tag:11708685339764},callback, errback);
+}
+var removeStopTag = function(callback, errback){
+  //alert("removeStopTag");
+  Asana.ServerModel.removeTaskTag(readTaskId(),{tag:11708685339768},callback, errback);
+}
+var removePausedTag = function(callback, errback){
+  //alert("removePausedTag");
+  Asana.ServerModel.removeTaskTag(readTaskId(),{tag:11721866157856},callback, errback);
+}
+var addStartTag = function(callback, errback){
+  //alert("addStartTag");
+  Asana.ServerModel.addTaskTag(readTaskId(),{tag:11708685339764},callback, errback);
+}
+var addStopTag = function(callback, errback){
+  //alert("addStopTag");
+  Asana.ServerModel.addTaskTag(readTaskId(),{tag:11708685339768},callback, errback);
+}
+var addPausedTag = function(callback, errback){
+  //alert("addPausedTag");
+  Asana.ServerModel.addTaskTag(readTaskId(),{tag:11721866157856},callback, errback);
+}
+
+
+//Marcel
+var manageTag = function(button) {
+  console.info("Creating tags");
+  hideError();
+
+  switch (button) {
+    case "[start]":
+        setStartWorking(true);
+        addWorkingTag(function(response){
+          addDotTag(function(response){
+          setStartWorking(false);
+          setStartEnabled(false);
+          setStopEnabled(true);});
+          },function(response) {
+            manageTag("[start]");
+            showError(response.errors[0].message);
+          }
+        );
+        break;
+    case "[stop]":
+        setStopWorking(true);
+        removeWorkingTag(function(response){
+          removeDotTag(function(response){
+          setStopWorking(false);
+          setStopEnabled(false);
+          setStartEnabled(true);});
+          },function(response) {
+            manageTag("[stop]");
+            showError(response.errors[0].message);
+          }
+        );
+        break;
+  } 
+  
+};
+
+//Marcel
+var createStory = function(status) {
+  console.info("Creating Story");
+  hideError();
+
+  switch (status) {
+    case "[start]":
+        setStartWorking(true);
+        Asana.ServerModel.createStory(
+            readTaskId(),
+            {
+              text: status
+            },
+            function(task) {
+              setStopEnabled(true);
+              setHoldEnabled(true);
+              //setStartWorking(false);
+              //showSuccess(task);
+            },
+            function(response) {
+              setStartWorking(false);
+              showError(response.errors[0].message);
+            });
+        break;
+    case "[hold]":
+        setHoldWorking(true);
+        Asana.ServerModel.createStory(
+            readTaskId(),
+            {
+              text: status
+            },
+            function(task) {
+              setStartWorking(false);
+              setStartEnabled(false);
+              setHoldEnabled(true);
+              setStopEnabled(false);
+              //setStartWorking(false);
+              //showSuccess(task);
+            },
+            function(response) {
+              setHoldWorking(false);
+              showError(response.errors[0].message);
+            });
+        break;
+    case "[stop]":
+        setHoldEnabled(false);
+        setStopWorking(true);
+        Asana.ServerModel.createStory(
+            readTaskId(),
+            {
+              text: status
+            },
+            function(task) {
+              setStartWorking(false);
+              setHoldEnabled(false);
+              setStopWorking(false);
+              setStopEnabled(false);
+              //showSuccess(task);
+            },
+            function(response) {
+              setStopWorking(false);
+              setStopEnabled(false);
+              setStartWorking(false);
+              showError(response.errors[0].message);
+            });
+        break;
+  } 
+  
+};
+
+var check4tags = function(strt1,wrk1,pse1,stp1){
+  Asana.ServerModel.tags(readTaskId(),
+    function(tags) {
+      tags.forEach(function(tag) {
+        
+        switch (tag.name) {
+          case "[started]":
+            
+            break;
+          case "[working]":
+            
+            break;
+          case "[paused]":
+            
+            break;
+          case "[stoped]":
+            
+            break;
+          default:
+            break;
+        }
+      });
+    }
+  );
+}
 
 var showError = function(message) {
   console.log("Error: " + message);
